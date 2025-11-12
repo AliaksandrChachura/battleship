@@ -17,3 +17,6 @@ npm-debug.log
 
 # TypeScript build output
 /dist
+
+# ESLint cache
+.eslintcache

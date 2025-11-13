@@ -40,30 +40,50 @@ function broadcastToAll( wsServer: WebSocketServer, type: string, data: string |
         data: dataString,
         id: 0
     };
+    const messageString = JSON.stringify(message);
+    console.log(`Broadcasting ${type}:`, messageString.substring(0, 200));
     wsServer.clients.forEach((client) => {
         if (client.readyState === 1) {
-            client.send(JSON.stringify(message));
+            client.send(messageString);
         }
     });
 }
 
 function broadcastUpdateRoom( wsServer: WebSocketServer, db: IDb ) {
-    const roomsList = Array.from(db.rooms.values())
+    const roomsList = db.rooms
         .filter(room => room.users.length === 1)
         .map(room => ({
             roomId: room.roomId,
-            users: room.users
+            roomUsers: room.users.map(user => ({
+                name: user.name,
+                index: user.index
+            }))
         }));
     
-    broadcastToAll(wsServer, MessageType.UPDATE_ROOM, JSON.stringify(roomsList));
+    // Ensure we always send an array, even if empty
+    const data = Array.isArray(roomsList) ? roomsList : [];
+    console.log('Broadcasting update_room with', data.length, 'rooms');
+    broadcastToAll(wsServer, MessageType.UPDATE_ROOM, data);
 }
 
 function broadcastUpdateWinners( wsServer: WebSocketServer, db: IDb ) {
-    const winnersList = Array.from(db.winners.entries())
-        .map(([name, wins]) => ({ name, wins }))
-        .sort((a: { name: number, wins: Winner }, b: { name: number, wins: Winner } ) => b.wins.score - a.wins.score);
+    const winnersList = db.winners
+        .map(winner => ({ name: winner.name, wins: winner.score }))
+        .sort((a, b) => b.wins - a.wins);
     
-    broadcastToAll(wsServer, MessageType.UPDATE_WINNERS, JSON.stringify(winnersList));
+    broadcastToAll(wsServer, MessageType.UPDATE_WINNERS, winnersList);
 }
 
-export { getUserByHash, createUser, sendMessage }
+function getRoomByUser(index: number, db: IDb) {
+    for (const room of db.rooms) {
+        if (room.users.some(user => {
+            const player = db.users.find((p: User) => p.index === user.index);
+            return player && user.index === player.index;
+        })) {
+            return room;
+        }
+    }
+    return null;
+}
+
+export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateRoom, broadcastUpdateWinners, getRoomByUser }

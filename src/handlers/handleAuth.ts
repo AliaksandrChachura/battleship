@@ -13,8 +13,9 @@ function handleReg(ws: IWebSocket, data: string | object, db: IDb) {
 
         const existingPlayer = db.users.find(p => p.hash === userHash);
         if (existingPlayer) {
-            sendMessage(ws, 'auth', {
-                name,
+            ws.id = existingPlayer.hash;
+            sendMessage(ws, MessageType.REG, {
+                name: existingPlayer.name,
                 index: existingPlayer.index,
                 error: false,
                 errorText: ''
@@ -23,8 +24,9 @@ function handleReg(ws: IWebSocket, data: string | object, db: IDb) {
         }
 
         const newUser = createUser(name, db);
+        ws.id = newUser.hash;
         sendMessage(ws, MessageType.REG, {
-            name,
+            name: newUser.name,
             index: newUser.index,
             error: false,
             errorText: ''

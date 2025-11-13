@@ -9,7 +9,7 @@ export const createWebSocketServer = (port: number): WebSocketServer => {
   wsServer.on('connection', (ws: IWebSocket) => {
     console.log('Client connected');
     ws.on('message', (message: string) => {
-      handleMessage(ws, message, db);
+      handleMessage(ws, message, db, wsServer);
       console.log(`Received message: ${message}`);
     });
 

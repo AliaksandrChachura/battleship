@@ -5,13 +5,13 @@ import { IWebSocket } from "../types/websocket";
 import { IDb } from "../data/types";
 import { MessageType } from "../helpers/constants";
 
-function handleReg(ws: IWebSocket, db: IDb) {
+function handleReg(ws: IWebSocket, data: string | object, db: IDb) {
     try {
-        const parsedData = typeof db === 'string' ? JSON.parse(db) : db;
+        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
         const { password, name, hash } = parsedData;
         const userHash = hash || password;
 
-        const existingPlayer = Array.from(db.users.values()).find(p => p.hash === userHash);
+        const existingPlayer = db.users.find(p => p.hash === userHash);
         if (existingPlayer) {
             sendMessage(ws, 'auth', {
                 name,

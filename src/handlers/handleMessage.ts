@@ -9,7 +9,7 @@ function handleMessage(ws: IWebSocket, message: string, db: IDb) {
         
         switch (type) {
             case 'reg':
-                handleReg(ws, data);
+                handleReg(ws, data, db);
                 break;
             // case 'create_room':
             //     handleCreateRoom(ws);

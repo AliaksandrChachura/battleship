@@ -1,9 +1,9 @@
 import { Player } from "./player";
 
 interface Game {
-    id: string;
+    id: number;
     players: Player[];
-    turn: string;
+    turn: string | null;
     lastAttackStatus: string | null;
 }
 

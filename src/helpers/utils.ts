@@ -86,4 +86,8 @@ function getRoomByUser(index: number, db: IDb) {
     return null;
 }
 
-export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateRoom, broadcastUpdateWinners, getRoomByUser }
+function createBoard() {
+    return Array(10).fill(null).map(() => Array(10).fill(null));
+}
+
+export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateRoom, broadcastUpdateWinners, getRoomByUser, createBoard }

@@ -7,6 +7,7 @@ import { MessageType } from "../helpers/constants";
 function handleCreateRoom(ws: IWebSocket, db: IDb, wsServer: WebSocketServer) {
     console.log('handleCreateRoom called, ws.id:', ws.id);
     const player = getUserByHash(ws.id, db);
+    console.log('player:', player);
     if (!player) {
         console.error('Player not found for hash:', ws.id);
         sendMessage(ws, 'error', {

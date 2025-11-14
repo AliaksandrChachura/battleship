@@ -2,6 +2,7 @@ import { IWebSocket } from "../types/websocket";
 import { handleReg } from "./handleAuth";
 import { IDb } from "../data/types";
 import { handleCreateRoom } from "./handleCreateRoom";
+import { handleAddUserToRoom } from "./handleAddUserToRoom";
 import { WebSocketServer } from 'ws';
 
 function handleMessage(ws: IWebSocket, message: string, db: IDb, wsServer: WebSocketServer) {
@@ -16,9 +17,9 @@ function handleMessage(ws: IWebSocket, message: string, db: IDb, wsServer: WebSo
             case 'create_room':
                 handleCreateRoom(ws, db, wsServer);
                 break;
-            // case 'add_user_to_room':
-            //     handleAddUserToRoom(ws, data);
-            //     break;
+            case 'add_user_to_room':
+                handleAddUserToRoom(ws, data, db, wsServer);
+                break;
             // case 'add_ships':
             //     handleAddShips(ws, data);
             //     break;

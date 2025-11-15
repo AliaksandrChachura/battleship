@@ -5,6 +5,8 @@ interface Game {
     players: Player[];
     turn: string | null;
     lastAttackStatus: string | null;
+    shipsReceived: number;
+    userHashes: string[];
 }
 
 export { Game}

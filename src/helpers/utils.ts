@@ -1,5 +1,6 @@
 import { User } from "../models/user";
-import { IDb, Winner } from "../data/types";
+import { Ship } from "../models/ship";
+import { IDb } from "../data/types";
 import crypto from 'crypto';
 import { IWebSocket } from "../types/websocket";
 import { MessageType } from "./constants";
@@ -26,7 +27,7 @@ function sendMessage(ws: IWebSocket, type: string, data: any) {
         const dataString = typeof data === 'string' ? data : JSON.stringify(data);
         const message = {
             type,
-            data: dataString,
+            data: dataString, // data field is a JSON string
             id: 0
         };
         ws.send(JSON.stringify(message));
@@ -49,7 +50,16 @@ function broadcastToAll( wsServer: WebSocketServer, type: string, data: string |
     });
 }
 
-function broadcastUpdateRoom( wsServer: WebSocketServer, db: IDb ) {
+
+function broadcastUpdateWinners( wsServer: WebSocketServer, db: IDb ) {
+    const winnersList = db.winners
+        .map(winner => ({ name: winner.name, wins: winner.score }))
+        .sort((a, b) => b.wins - a.wins);
+    
+    broadcastToAll(wsServer, MessageType.UPDATE_WINNERS, winnersList);
+}
+
+function broadcastUpdateRoomToAll(wsServer: WebSocketServer, db: IDb) {
     const roomsList = db.rooms
         .filter(room => room.users.length === 1)
         .map(room => ({
@@ -60,18 +70,14 @@ function broadcastUpdateRoom( wsServer: WebSocketServer, db: IDb ) {
             }))
         }));
     
-    // Ensure we always send an array, even if empty
     const data = Array.isArray(roomsList) ? roomsList : [];
-    console.log('Broadcasting update_room with', data.length, 'rooms');
-    broadcastToAll(wsServer, MessageType.UPDATE_ROOM, data);
-}
-
-function broadcastUpdateWinners( wsServer: WebSocketServer, db: IDb ) {
-    const winnersList = db.winners
-        .map(winner => ({ name: winner.name, wins: winner.score }))
-        .sort((a, b) => b.wins - a.wins);
+    console.log('Broadcasting update_room with', data.length, 'available rooms (rooms with 1 player)');
     
-    broadcastToAll(wsServer, MessageType.UPDATE_WINNERS, winnersList);
+    wsServer.clients.forEach((client) => {
+        if (client.readyState === 1) {
+            sendMessage(client as IWebSocket, MessageType.UPDATE_ROOM, data);
+        }
+    });   
 }
 
 function getRoomByUser(index: number, db: IDb) {
@@ -90,4 +96,4 @@ function createBoard() {
     return Array(10).fill(null).map(() => Array(10).fill(null));
 }
 
-export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateRoom, broadcastUpdateWinners, getRoomByUser, createBoard }
+export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateWinners, broadcastUpdateRoomToAll, getRoomByUser, createBoard }

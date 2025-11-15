@@ -4,8 +4,9 @@ import { sendMessage, createUser } from "../helpers/utils"
 import { IWebSocket } from "../types/websocket";
 import { IDb } from "../data/types";
 import { MessageType } from "../helpers/constants";
+import { WebSocketServer } from 'ws';
 
-function handleReg(ws: IWebSocket, data: string | object, db: IDb) {
+function handleReg(ws: IWebSocket, data: string | object, db: IDb, wsServer: WebSocketServer) {
     try {
         const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
         const { password, name, hash } = parsedData;
@@ -20,17 +21,32 @@ function handleReg(ws: IWebSocket, data: string | object, db: IDb) {
                 error: false,
                 errorText: ''
             });
-            return;
+        } else {
+            const newUser = createUser(name, db);
+            ws.id = newUser.hash;
+            sendMessage(ws, MessageType.REG, {
+                name: newUser.name,
+                index: newUser.index,
+                error: false,
+                errorText: ''
+            });
         }
 
-        const newUser = createUser(name, db);
-        ws.id = newUser.hash;
-        sendMessage(ws, MessageType.REG, {
-            name: newUser.name,
-            index: newUser.index,
-            error: false,
-            errorText: ''
-        });
+        const roomsList = db.rooms
+            .filter(room => room.users.length === 1)
+            .map(room => ({
+                roomId: room.roomId,
+                roomUsers: room.users.map(user => ({
+                    name: user.name,
+                    index: user.index
+                }))
+            }));
+        sendMessage(ws, MessageType.UPDATE_ROOM, Array.isArray(roomsList) ? roomsList : []);
+
+        const winnersList = db.winners
+            .map(winner => ({ name: winner.name, wins: winner.score }))
+            .sort((a, b) => b.wins - a.wins);
+        sendMessage(ws, MessageType.UPDATE_WINNERS, winnersList);
     } catch (error) {
         console.error('Error handling auth:', error);
         sendMessage(ws, 'error', {

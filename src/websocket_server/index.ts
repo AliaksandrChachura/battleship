@@ -15,7 +15,6 @@ export const createWebSocketServer = (port: number): WebSocketServer => {
 
     ws.on('close', () => {
         console.log('Client disconnected');
-                // handleDisconnect(ws);
     });
             
     ws.on('error', (error) => {

@@ -1,6 +1,6 @@
 import { IWebSocket } from "../types/websocket";
 import { IDb } from "../data/types";
-import { getUserByHash, getRoomByUser, broadcastUpdateRoom, sendMessage } from "../helpers/utils";
+import { getUserByHash, getRoomByUser, sendMessage, broadcastUpdateRoomToAll } from "../helpers/utils";
 import { WebSocketServer } from 'ws';
 import { MessageType } from "../helpers/constants";
 
@@ -10,8 +10,9 @@ function handleCreateRoom(ws: IWebSocket, db: IDb, wsServer: WebSocketServer) {
     console.log('player:', player);
     if (!player) {
         console.error('Player not found for hash:', ws.id);
-        sendMessage(ws, 'error', {
-            message: 'User not authenticated',
+        sendMessage(ws, MessageType.REG, {
+            name: '',
+            index: 0,
             error: true,
             errorText: 'Please register first'
         });
@@ -37,7 +38,7 @@ function handleCreateRoom(ws: IWebSocket, db: IDb, wsServer: WebSocketServer) {
     db.rooms.push(room);
     console.log('Room created:', room.roomId, 'Total rooms:', db.rooms.length);
 
-    broadcastUpdateRoom(wsServer, db);
+    broadcastUpdateRoomToAll(wsServer, db);
     console.log('Room update broadcasted');
 }
 

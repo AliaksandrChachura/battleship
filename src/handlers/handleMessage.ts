@@ -6,6 +6,8 @@ import { handleAddUserToRoom } from "./handleAddUserToRoom";
 import { handleAddShips } from "./handleAddShips";
 import { handleStartGame } from "./handleStartGame";
 import { handleUpdateRoom } from "./handleUpdateRoom";
+import { handleAttack } from "./handleAttack";
+import { handleDisconnect } from "./handleDisconnect";
 import { WebSocketServer } from 'ws';
 import { MessageType } from "../helpers/constants";
 
@@ -44,14 +46,16 @@ function handleMessage(ws: IWebSocket, message: string, db: IDb, wsServer: WebSo
                 break;
             case MessageType.UPDATE_ROOM:
                 handleUpdateRoom(ws, data, db, wsServer);
+                break;     
+            case MessageType.ATTACK:
+                handleAttack(ws, data, db, wsServer);
                 break;
-                 
-            // case MessageType.ATTACK:
-            //     handleAttack(ws, data, db, wsServer);
-            //     break;
             // case MessageType.RANDOM_ATTACK:
             //     handleRandomAttack(ws, data, db, wsServer);
             //     break;
+            case MessageType.FINISH:
+                handleDisconnect(ws, db, wsServer);
+                break;
             default:
                 console.log('Unknown message type:', type);
         }

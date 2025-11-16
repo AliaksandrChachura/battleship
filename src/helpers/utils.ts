@@ -1,5 +1,6 @@
 import { User } from "../models/user";
 import { Ship } from "../models/ship";
+import { Game } from "../models/game";
 import { IDb } from "../data/types";
 import crypto from 'crypto';
 import { IWebSocket } from "../types/websocket";
@@ -96,4 +97,94 @@ function createBoard() {
     return Array(10).fill(null).map(() => Array(10).fill(null));
 }
 
-export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateWinners, broadcastUpdateRoomToAll, getRoomByUser, createBoard }
+function checkShipKilled(ships: Ship[], targetingCoords: Set<string>, x: number, y: number) {
+    for (const ship of ships) {
+        const { position, direction, length } = ship;
+        const { x: sx, y: sy } = position;
+        let isPartOfShip = false;
+        
+        for (let i = 0; i < length; i++) {
+            // If direction is true (vertical), Y increases; if false (horizontal), X increases
+            const posX = direction ? sx : sx + i;
+            const posY = direction ? sy + i : sy;
+            
+            if (posX === x && posY === y) {
+                isPartOfShip = true;
+                break;
+            }
+        }
+        
+        if (isPartOfShip) {
+            let allHit = true;
+            for (let i = 0; i < length; i++) {
+                // If direction is true (vertical), Y increases; if false (horizontal), X increases
+                const posX = direction ? sx : sx + i;
+                const posY = direction ? sy + i : sy;
+                const coordKey = `${posX},${posY}`;
+                
+                if (!targetingCoords.has(coordKey)) {
+                    allHit = false;
+                    break;
+                }
+            }
+            
+            if (allHit) {
+                const cells: { x: number, y: number }[] = [];
+                const addedCells = new Set<string>();
+                
+                for (let i = 0; i < length; i++) {
+                    // If direction is true (vertical), Y increases; if false (horizontal), X increases
+                    const posX = direction ? sx : sx + i;
+                    const posY = direction ? sy + i : sy;
+                    
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const nx = posX + dx;
+                            const ny = posY + dy;
+                            if (nx >= 0 && nx < 10 && ny >= 0 && ny < 10) {
+                                const cellKey = `${nx},${ny}`;
+                                if (!addedCells.has(cellKey)) {
+                                    cells.push({ x: nx, y: ny });
+                                    addedCells.add(cellKey);
+                                }
+                            }
+                        }
+                    }
+                }
+                return cells;
+            }
+        }
+    }
+    
+    return null;
+}
+
+function checkGameFinished(game: Game, playerIndex: string) {
+    const attacker = game.players.find(p => p.playerId === playerIndex);
+    const enemy = game.players.find(p => p.playerId !== playerIndex);
+    if (!attacker || !enemy) return false;
+    
+    // Check if all enemy ships are killed by checking if all enemy ship cells
+    // are in the attacker's targetingCoords (what the attacker has hit)
+    let allShipsKilled = true;
+    for (const ship of enemy.ships) {
+        const { position, direction, length } = ship;
+        const { x: sx, y: sy } = position;
+        for (let i = 0; i < length; i++) {
+            const posX = direction ? sx + i : sx;
+            const posY = direction ? sy : sy + i;
+            const coordKey = `${posX},${posY}`;
+            
+            // Check if this ship cell has been hit by the attacker
+            if (!attacker.targetingCoords.has(coordKey)) {
+                allShipsKilled = false;
+                break;
+            }
+        }
+        if (!allShipsKilled) break;
+    }
+    
+    return allShipsKilled;
+}
+
+export { getUserByHash, createUser, sendMessage, broadcastToAll, broadcastUpdateWinners, broadcastUpdateRoomToAll, getRoomByUser, createBoard, checkShipKilled, checkGameFinished }

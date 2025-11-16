@@ -1,8 +1,8 @@
 interface User {
-    index: number;
-    name: string;
-    hash: string;
-    isLoggedIn: boolean;
+  index: number;
+  name: string;
+  hash: string;
+  isLoggedIn: boolean;
 }
 
-export { User }
+export { User };

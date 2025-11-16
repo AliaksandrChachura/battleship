@@ -1,6 +1,6 @@
 interface Winner {
-    name: string;
-    score: number;
+  name: string;
+  score: number;
 }
 
-export { Winner }
+export { Winner };

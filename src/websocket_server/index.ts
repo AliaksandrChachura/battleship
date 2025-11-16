@@ -1,13 +1,12 @@
 import { WebSocketServer } from 'ws';
 import { IWebSocket } from '../types/websocket';
 import { handleMessage } from '../handlers/handleMessage';
-import { handleDisconnect } from '../handlers/handleDisconnect';
 import { db } from '../data/db';
 import { MessageType } from '../helpers/constants';
 
 export const createWebSocketServer = (port: number): WebSocketServer => {
   const wsServer = new WebSocketServer({ port });
-  
+
   wsServer.on('connection', (ws: IWebSocket) => {
     console.log('Client connected');
     ws.on('message', (message: string) => {
@@ -16,12 +15,12 @@ export const createWebSocketServer = (port: number): WebSocketServer => {
     });
 
     ws.on('close', () => {
-        console.log('Client disconnected');
-        handleMessage(ws, MessageType.FINISH, db, wsServer);
+      console.log('Client disconnected');
+      handleMessage(ws, MessageType.FINISH, db, wsServer);
     });
-            
+
     ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
+      console.error('WebSocket error:', error);
     });
   });
 

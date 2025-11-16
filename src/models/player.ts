@@ -1,9 +1,9 @@
-import { Ship } from "./ship";
+import { Ship } from './ship';
 
 interface Player {
-    playerId: string;
-    ships: Ship[];
-    targetingCoords : Set<string>;
+  playerId: string;
+  ships: Ship[];
+  targetingCoords: Set<string>;
 }
 
-export { Player }
+export { Player };

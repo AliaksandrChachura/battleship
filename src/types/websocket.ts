@@ -1,7 +1,7 @@
-import { WebSocket } from "ws";
+import { WebSocket } from 'ws';
 
 interface IWebSocket extends WebSocket {
-    id: string;
+  id: string;
 }
 
-export { IWebSocket }
+export { IWebSocket };

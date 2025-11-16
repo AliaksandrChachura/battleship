@@ -9,4 +9,3 @@ httpServer.listen(HTTP_PORT);
 
 console.log(`Start websocket server on the ${WS_PORT} port!`);
 createWebSocketServer(WS_PORT);
-
